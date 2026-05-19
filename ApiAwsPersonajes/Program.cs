@@ -11,6 +11,18 @@ builder.Services.AddOpenApi();
 string connectionString = builder.Configuration.GetConnectionString("Aws");
 builder.Services.AddDbContext<TelevisioContext>(options => options.UseMySQL(connectionString));
 builder.Services.AddTransient<RepositoryTelevision>();
+
+// Habilitar CORS: política "AllowAll" (cambiar en producción por orígenes concretos)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers();
 var app = builder.Build();
 
@@ -28,6 +40,9 @@ app.MapGet("/", context =>
 });
 
 app.UseHttpsRedirection();
+
+// Usar CORS antes de MapControllers
+app.UseCors("AllowAll");
 
 app.MapControllers();
 
