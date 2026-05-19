@@ -4,25 +4,16 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddCors(p => p.AddPolicy("corsenabled", options =>
+{
+    options.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+}));
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 string connectionString = builder.Configuration.GetConnectionString("Aws");
 builder.Services.AddDbContext<TelevisioContext>(options => options.UseMySQL(connectionString));
 builder.Services.AddTransient<RepositoryTelevision>();
-
-// Habilitar CORS: política "AllowAll" (cambiar en producción por orígenes concretos)
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
-
 builder.Services.AddControllers();
 var app = builder.Build();
 
@@ -38,11 +29,8 @@ app.MapGet("/", context =>
     context.Response.Redirect("/scalar");
     return Task.CompletedTask;
 });
-
+app.UseCors("corsenabled");
 app.UseHttpsRedirection();
-
-// Usar CORS antes de MapControllers
-app.UseCors("AllowAll");
 
 app.MapControllers();
 
